@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: jwt_auth__app
+    ports:
+      - "8000:8000"
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+    image: ${IMAGE_APP}
+    ulimits:
+      nofile:
+        soft: 4096
+        hard: 4096
+    restart: always
+    depends_on:
+      - db
+    logging:
+      driver: journald
+    env_file:
+      - .env
+  db:
+    container_name: jwt_auth__db
+    build: ./postgres
+    image: ${IMAGE_DB}
+    restart: always
+    volumes:
+      - db_volume:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: journald
+    env_file:
+      - .env
+    
+volumes:
+  db_volume:
